@@ -23,6 +23,15 @@ class Redis
         remove_substrings(item, id)
         Config.redis.zrem(Config.leaderboard, id) if Config.use_leaderboard
       end
+      
+      # Increment the score (by 1 by default) of an item.  Pass in a negative value
+      # to decrement the score
+      def increment(item, inc=1)
+        item = item.downcase
+        id = get_id(item)
+        each_substring(item) { |sub| Config.substrings.zincrby(sub, inc, id) }
+        Config.db.zincrby(Config.leaderboard, inc, id) if Config.use_leaderboard
+      end
 
       private
       # Yield each substring of a complete string 
