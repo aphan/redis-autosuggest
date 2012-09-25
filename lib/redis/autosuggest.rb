@@ -14,6 +14,16 @@ class Redis
         end
       end
 
+      # Remove an item from the pool of items to autosuggest from
+      def remove_item(item)
+        item = item.downcase
+        id = get_id(item)
+        return if id.nil?
+        Config.db.hdel(Config.items, id)
+        remove_substrings(item, id)
+        Config.redis.zrem(Config.leaderboard, id) if Config.use_leaderboard
+      end
+
       private
       # Yield each substring of a complete string 
       def each_substring(str)
@@ -27,6 +37,19 @@ class Redis
         each_substring(str) do |sub|
           Config.substrings.zadd(sub, score, id)
         end
+      end
+
+      # Remove all substrings of a string from the db
+      def remove_substrings(str, id)
+        each_substring(str) do |sub|
+          Config.substrings.zrem(sub, id)
+        end
+      end
+
+      # Get the id associated with an item in the db 
+      def get_id(item)
+        kv_pair = Config.db.hgetall(Config.items).find { |_, v| v == item}
+        kv_pair.first unless kv_pair.nil?
       end
     end
   end
