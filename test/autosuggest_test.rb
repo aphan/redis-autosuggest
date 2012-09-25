@@ -73,5 +73,17 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     @subs.keys.each { |k| assert @subs.zscore(k, 0) == 6 }
   end
 
+  def test_suggesting_items
+    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.add_item("#{@str1} longer", 2)
+    suggestions =  Redis::Autosuggest.suggest(@str1[0..4])
+    assert_equal [@str1.downcase, "#{@str1} longer".downcase], suggestions
+  end
+
+  def test_no_suggestions_found
+    Redis::Autosuggest.add_item(@str1)
+    assert Redis::Autosuggest.suggest("nothing here").empty?
+  end
+
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
