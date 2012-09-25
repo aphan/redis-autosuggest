@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift 'lib'
 require 'minitest/autorun'
+require 'debugger'
 require 'redis'
 require 'redis-namespace'
 require 'redis-autosuggest'
