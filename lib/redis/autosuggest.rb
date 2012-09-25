@@ -43,16 +43,12 @@ class Redis
 
       # Add all substrings of a string to redis
       def add_substrings(str, score, id)
-        each_substring(str) do |sub|
-          Config.substrings.zadd(sub, score, id)
-        end
+        each_substring(str) { |sub| Config.substrings.zadd(sub, score, id) }
       end
 
       # Remove all substrings of a string from the db
       def remove_substrings(str, id)
-        each_substring(str) do |sub|
-          Config.substrings.zrem(sub, id)
-        end
+        each_substring(str) { |sub| Config.substrings.zrem(sub, id) }
       end
 
       # Get the id associated with an item in the db 
