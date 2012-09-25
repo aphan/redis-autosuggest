@@ -85,5 +85,15 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     assert Redis::Autosuggest.suggest("nothing here").empty?
   end
 
+  def test_leaderboard_items
+    Redis::Autosuggest::Config.use_leaderboard = true
+    Redis::Autosuggest.add_item(@str1, 3)
+    Redis::Autosuggest.add_item("Another item", 5)
+    Redis::Autosuggest.add_item("Third item", 1)
+    top_items = Redis::Autosuggest.leaderboard
+    assert_equal ["another item", @str1.downcase, "third item"], top_items 
+    Redis::Autosuggest::Config.use_leaderboard = false 
+  end
+
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
