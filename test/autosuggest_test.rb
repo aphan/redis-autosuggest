@@ -63,7 +63,15 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     assert @subs.keys.size == @str1.size
   end
 
-
+  def test_incrementing_an_items_score
+    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.increment(@str1)
+    @subs.keys.each { |k| assert @subs.zscore(k, 0) == 6 }
+    Redis::Autosuggest.increment(@str1, 8)
+    @subs.keys.each { |k| assert @subs.zscore(k, 0) == 14 }
+    Redis::Autosuggest.increment(@str1, -8)
+    @subs.keys.each { |k| assert @subs.zscore(k, 0) == 6 }
+  end
 
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
