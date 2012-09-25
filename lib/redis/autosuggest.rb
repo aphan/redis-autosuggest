@@ -32,12 +32,18 @@ class Redis
         each_substring(item) { |sub| Config.substrings.zincrby(sub, inc, id) }
         Config.db.zincrby(Config.leaderboard, inc, id) if Config.use_leaderboard
       end
-      
+
       # Suggest items from the database that most closely match the queried string.
       # Returns an array of suggestion items (an empty array if nothing found)
       def suggest(str, results=Config.max_results)
         suggestion_ids = Config.substrings.zrevrange(str.downcase, 0, results - 1)
         suggestion_ids.empty? ? [] : Config.db.hmget(Config.items, suggestion_ids)
+      end
+
+      # Gets the items with the highest scores from the autosuggest db
+      def leaderboard(results=Config.max_results)
+        top_ids = Config.db.zrevrange(Config.leaderboard, 0, results - 1)
+        top_ids.empty? ? [] : Config.db.hmget(Config.items, top_ids)  
       end
 
       private
