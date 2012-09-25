@@ -48,6 +48,22 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     assert @db.hgetall(Redis::Autosuggest::Config.items).size == 1
   end
 
+  def test_removing_an_item
+    Redis::Autosuggest.add_item(@str1)
+    Redis::Autosuggest.remove_item(@str1)
+    assert @db.hgetall(Redis::Autosuggest::Config.items).empty?
+    assert @subs.keys.size == 0
+  end
+
+  def test_removing_a_nonexistent_item
+    Redis::Autosuggest.add_item(@str1)
+    Redis::Autosuggest.remove_item("Second test string")
+    assert @db.hgetall(Redis::Autosuggest::Config.items).size == 1
+    assert @db.hgetall(Redis::Autosuggest::Config.items)["0"] == @str1.downcase
+    assert @subs.keys.size == @str1.size
+  end
+
+
 
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
