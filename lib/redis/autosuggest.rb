@@ -36,16 +36,14 @@ class Redis
       # Suggest items from the database that most closely match the queried string.
       # Returns an array of suggestion items (an empty array if nothing found)
       def suggest(str, results=Config.max_results)
-        suggestion_ids = Config.substrings.zrevrange(str.downcase!, 0, results - 1)
+        suggestion_ids = Config.substrings.zrevrange(str.downcase, 0, results - 1)
         suggestion_ids.empty? ? [] : Config.db.hmget(Config.items, suggestion_ids)
       end
 
       private
       # Yield each substring of a complete string 
       def each_substring(str)
-        str.each_char.each_with_object("") do |char, total|
-          yield total << char
-        end
+        (0..str.length - 1).each { |i| yield str[0..i] }
       end
 
       # Add all substrings of a string to redis
