@@ -18,13 +18,15 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   def setup
     self.class.unused_db.flushdb
     Redis::Autosuggest::Config.redis = self.class.unused_db 
+    @db = Redis::Autosuggest::Config.db
     @subs = Redis::Autosuggest::Config.substrings
+    @str1 = "Test String"
   end
 
   def test_adding_an_item
-    str = "Test String"
-    Redis::Autosuggest.add_item(str, 5)
-    assert @subs.keys.size == str.size
+    Redis::Autosuggest.add_item(@str1, 5)
+    assert @db.hgetall(Redis::Autosuggest::Config.items)["0"] == @str1.downcase
+    assert @subs.keys.size == @str1.size 
     assert_equal ["0"], @subs.zrevrange("t", 0, -1)
     assert_equal ["0"], @subs.zrevrange("te", 0, -1)
     assert_equal ["0"], @subs.zrevrange("tes", 0, -1)
@@ -40,10 +42,10 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_adding_duplicate_item
-    str = "Test String"
-    Redis::Autosuggest.add_item(str, 5)
-    Redis::Autosuggest.add_item(str, 5)
-    assert @subs.keys.size == str.size
+    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.add_item(@str1, 5)
+    assert @subs.keys.size == @str1.size
+    assert @db.hgetall(Redis::Autosuggest::Config.items).size == 1
   end
 
 
