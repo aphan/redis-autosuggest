@@ -8,8 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Redis::Autosuggest::VERSION
   gem.authors       = ["Adam Phan"]
   gem.email         = ["aphansh@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{Provides autocompletions through Redis, with the ability to rank
+  results and integrate with Rails}
+  gem.summary       = %q{Suggestions/autocompletions with Redis and Ruby}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
