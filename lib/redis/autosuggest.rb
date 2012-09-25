@@ -4,7 +4,7 @@ class Redis
     class << self
 
       # Add an item to the pool of items to autosuggest from
-      def add_item(item, score=0)
+      def add(item, score=0)
         item = item.downcase
         unless Config.db.hgetall(Config.items).has_value?(item)
           id = Config.db.hlen(Config.items)
@@ -15,7 +15,7 @@ class Redis
       end
 
       # Remove an item from the pool of items to autosuggest from
-      def remove_item(item)
+      def remove(item)
         item = item.downcase
         id = get_id(item)
         return if id.nil?

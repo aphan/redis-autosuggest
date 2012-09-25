@@ -24,7 +24,7 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_adding_an_item
-    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.add(@str1, 5)
     assert @db.hgetall(Redis::Autosuggest::Config.items)["0"] == @str1.downcase
     assert @subs.keys.size == @str1.size 
     assert_equal ["0"], @subs.zrevrange("t", 0, -1)
@@ -42,29 +42,29 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_adding_duplicate_item
-    Redis::Autosuggest.add_item(@str1, 5)
-    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.add(@str1, 5)
+    Redis::Autosuggest.add(@str1, 5)
     assert @subs.keys.size == @str1.size
     assert @db.hgetall(Redis::Autosuggest::Config.items).size == 1
   end
 
   def test_removing_an_item
-    Redis::Autosuggest.add_item(@str1)
-    Redis::Autosuggest.remove_item(@str1)
+    Redis::Autosuggest.add(@str1)
+    Redis::Autosuggest.remove(@str1)
     assert @db.hgetall(Redis::Autosuggest::Config.items).empty?
     assert @subs.keys.size == 0
   end
 
   def test_removing_a_nonexistent_item
-    Redis::Autosuggest.add_item(@str1)
-    Redis::Autosuggest.remove_item("Second test string")
+    Redis::Autosuggest.add(@str1)
+    Redis::Autosuggest.remove("Second test string")
     assert @db.hgetall(Redis::Autosuggest::Config.items).size == 1
     assert @db.hgetall(Redis::Autosuggest::Config.items)["0"] == @str1.downcase
     assert @subs.keys.size == @str1.size
   end
 
   def test_incrementing_an_items_score
-    Redis::Autosuggest.add_item(@str1, 5)
+    Redis::Autosuggest.add(@str1, 5)
     Redis::Autosuggest.increment(@str1)
     @subs.keys.each { |k| assert @subs.zscore(k, 0) == 6 }
     Redis::Autosuggest.increment(@str1, 8)
@@ -74,22 +74,22 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_suggesting_items
-    Redis::Autosuggest.add_item(@str1, 5)
-    Redis::Autosuggest.add_item("#{@str1} longer", 2)
+    Redis::Autosuggest.add(@str1, 5)
+    Redis::Autosuggest.add("#{@str1} longer", 2)
     suggestions =  Redis::Autosuggest.suggest(@str1[0..4])
     assert_equal [@str1.downcase, "#{@str1} longer".downcase], suggestions
   end
 
   def test_no_suggestions_found
-    Redis::Autosuggest.add_item(@str1)
+    Redis::Autosuggest.add(@str1)
     assert Redis::Autosuggest.suggest("nothing here").empty?
   end
 
   def test_leaderboard_items
     Redis::Autosuggest::Config.use_leaderboard = true
-    Redis::Autosuggest.add_item(@str1, 3)
-    Redis::Autosuggest.add_item("Another item", 5)
-    Redis::Autosuggest.add_item("Third item", 1)
+    Redis::Autosuggest.add(@str1, 3)
+    Redis::Autosuggest.add("Another item", 5)
+    Redis::Autosuggest.add("Third item", 1)
     top_items = Redis::Autosuggest.leaderboard
     assert_equal ["another item", @str1.downcase, "third item"], top_items 
     Redis::Autosuggest::Config.use_leaderboard = false 
