@@ -19,4 +19,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency("redis", "~> 3.0.1")
+  gem.add_dependency("redis-namespace", "~> 1.2.1")
+
+  gem.add_development_dependency("debugger", "~> 1.2.0")
+  gem.add_development_dependency("minitest", "~> 3.5.0")
 end
