@@ -1,6 +1,7 @@
 # Redis::Autosuggest
 
-TODO: Write a gem description
+Provides autocompletions through Redis, with the ability to rank
+  results and integrate with Rails
 
 ## Installation
 
@@ -18,7 +19,21 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+By default Autosuggest creates a new Redis client on db 0 at localhost:6379.
+
+To change the server/port:
+    r = Redis.new(:host => "my_host", :port => my_port)
+    Redis::Autosuggest.redis = r
+
+To add an item to be use for autocompletions:
+    Redis::Autosuggest.add("North By Northwest", "Northern Exposure")
+
+To check for autocompletions for this item:
+    Redis::Autosuggest.suggest("nor")
+    # => ["north by northwest", "northern exposure"]
+
+To remove an item:
+    Redis::Autosuggest.remove("Northern Exposure")
 
 ## Contributing
 
