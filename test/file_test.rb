@@ -14,7 +14,6 @@ class TestFile < MiniTest::Unit::TestCase
   end
 
   def test_adding_from_file
-    puts Dir.pwd
     Redis::Autosuggest.add_from_file("test/text/example.txt")
     assert @db.hgetall(Redis::Autosuggest.items).size == 3
     assert @subs.keys.size == 10
