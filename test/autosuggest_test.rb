@@ -1,18 +1,9 @@
 require 'test_helper'
 
 class TestAutosuggest < MiniTest::Unit::TestCase
-
+  
   def self.unused_db
-    @unused_db ||= Redis.new(:db => db_picker)
-  end
-
-  # get an unused db so that we can safely clear all keys 
-  def self.db_picker
-    redis = Redis.new
-    (0..15).each do |i|
-      redis.select(i)
-      return i if redis.keys.empty?
-    end
+    @unused_db ||= Redis.new(:db => TestHelper.db_picker)
   end
 
   def setup
