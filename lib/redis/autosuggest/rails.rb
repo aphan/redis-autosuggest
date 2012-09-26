@@ -17,7 +17,7 @@ class Redis
           after_create :add_to_autosuggest
           def add_to_autosuggest
             Redis::Autosuggest.rails_sources[self.class].each do |column, options|
-              score = self.send(options[:rank]) if !options[:rank].nil?
+              score = self.send(options[:rank_by]) if !options[:rank_by].nil?
               score ||= 0
               Redis::Autosuggest.add_with_score(self.send(column), score)
             end
