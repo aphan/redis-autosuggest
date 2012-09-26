@@ -45,8 +45,6 @@ Some other usage examples:
 Redis::Autosuggest.suggest("North By Northwest", 9, Northern Exposure, 3)
 # Increment an item's score
 Redis::Autosuggest.suggest("North By Northwest", 1)
-# Remove an item from the autosuggestions pool
-Redis::Autosuggest.remove("North By Northwest")
 ```
 
 ## Rails support
@@ -56,7 +54,6 @@ Autosuggest can also be integrated with Rails.  Include it in a model:
 class Movie < ActiveRecord::Base
   include Redis::Autosuggest
   
-  attr_accessible :movie_title
   autosuggest     :movie_title
 end
 ```
@@ -69,7 +66,7 @@ Redis::Autosuggest.init_rails_sources
 You can optionally specify a numeric field to be used as the initial score for an item
 when it is added:
 ```ruby
-  autosuggest     :movie_title, :rank_by => imdb_score
+  autosuggest     :movie_title, :rank_by => imdb_rating
 ```
 
 ## Contributing
