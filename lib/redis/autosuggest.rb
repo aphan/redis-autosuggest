@@ -12,7 +12,9 @@ class Redis
           add_item(i.downcase)
         end
       end
-
+      
+      # Add item(s) along with their scores.
+      # add_with_score("item1", 4, "item2", 1, "item3", 0)
       def add_with_score(*fields)
         item_pool = @db.hgetall(@items).values
         fields.each_slice(2) do |f|
