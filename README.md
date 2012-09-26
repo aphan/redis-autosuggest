@@ -5,16 +5,6 @@ Provides autocompletions through Redis, with the ability to rank
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'redis-autosuggest'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
     $ gem install redis-autosuggest
 
 ## Usage
@@ -42,9 +32,9 @@ Autocompletions will be ordered their score value (descending).
 Some other usage examples:
 ```ruby
 # Add items with initial scores 
-Redis::Autosuggest.suggest("North By Northwest", 9, Northern Exposure, 3)
+Redis::Autosuggest.add_with_score("North By Northwest", 9, Northern Exposure, 3)
 # Increment an item's score
-Redis::Autosuggest.suggest("North By Northwest", 1)
+Redis::Autosuggest.increment("North By Northwest", 1)
 ```
 
 ## Rails support
