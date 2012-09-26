@@ -100,5 +100,10 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     Redis::Autosuggest.use_leaderboard = false 
   end
 
+  def test_getting_an_items_score
+     Redis::Autosuggest.add_with_score(@str1, 3)
+     assert_equal 3, Redis::Autosuggest.get_score(@str1)
+  end
+
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
