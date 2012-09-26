@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Provides autocompletions through Redis, with the ability to rank
   results and integrate with Rails}
   gem.summary       = %q{Suggestions/autocompletions with Redis and Ruby}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/aphan/redis-autosuggest"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
