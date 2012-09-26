@@ -23,15 +23,19 @@ class Redis
 
     # Key to a sorted set holding all id of items in the autosuggest database sorted 
     # by their score
-    @leaderboard = "leaderboard"
+    @leaderboard = "lead"
 
     # Leaderboard off by default
     @use_leaderboard = false
 
+    # Sources to be used for Autocomplete in rails.
+    # Example: { Movie => :movie_title }
+    @rails_sources = {}
+
     class << self
       attr_reader :redis
       attr_accessor :db, :items, :substrings, :max_per_substring, :max_results,
-        :leaderboard, :use_leaderboard
+        :leaderboard, :use_leaderboard, :rails_sources
 
       def redis=(redis)
         @redis = redis
