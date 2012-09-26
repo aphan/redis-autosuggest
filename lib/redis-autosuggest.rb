@@ -1,5 +1,6 @@
 require 'redis'
 require 'redis-namespace'
 require 'redis/autosuggest'
-require 'redis/autosuggest/version'
 require 'redis/autosuggest/config'
+require 'redis/autosuggest/file'
+require 'redis/autosuggest/version'
