@@ -12,7 +12,7 @@ class Redis
           add_item(i.downcase)
         end
       end
-      
+
       # Add item(s) along with their scores.
       # add_with_score("item1", 4, "item2", 1, "item3", 0)
       def add_with_score(*fields)
@@ -53,6 +53,11 @@ class Redis
       def get_leaderboard(results=@max_results)
         top_ids = @db.zrevrange(@leaderboard, 0, results - 1)
         top_ids.empty? ? [] : @db.hmget(@items, top_ids)  
+      end
+
+      # Get the score of an item
+      def get_score(item)
+        @substrings.zscore(item.downcase, get_id(item.downcase))
       end
 
       private
