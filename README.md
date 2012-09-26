@@ -22,24 +22,28 @@ Or install it yourself as:
 By default Autosuggest creates a new Redis client on db 0 at localhost:6379.
 
 To change the server/port:
+```ruby
+r = Redis.new(:host => "my_host", :port => my_port)
 
-    r = Redis.new(:host => "my_host", :port => my_port)
-
-    Redis::Autosuggest.redis = r
+Redis::Autosuggest.redis = r
+```
 
 To add an item to be use for autocompletions:
-
-    Redis::Autosuggest.add("North By Northwest", "Northern Exposure")
+```ruby
+Redis::Autosuggest.add("North By Northwest", "Northern Exposure")
+```
 
 To check for autocompletions for this item:
-
-    Redis::Autosuggest.suggest("nor")
-
-    # => ["north by northwest", "northern exposure"]
+```ruby
+Redis::Autosuggest.suggest("nor")
+# => ["north by northwest", "northern exposure"]
+```
 
 To remove an item:
+```ruby
+Redis::Autosuggest.remove("Northern Exposure")
+```
 
-    Redis::Autosuggest.remove("Northern Exposure")
 
 ## Contributing
 
