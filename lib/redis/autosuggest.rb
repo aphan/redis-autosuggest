@@ -3,14 +3,21 @@ class Redis
 
     class << self
 
-      # Add an item to the pool of items to autosuggest from
-      def add(item, score=0)
-        item = item.downcase
-        unless Config.db.hgetall(Config.items).has_value?(item)
-          id = Config.db.hlen(Config.items)
-          Config.db.hset(Config.items, id, item)
-          add_substrings(item, score, id)
-          Config.db.zadd(Config.leaderboard, score, id) if Config.use_leaderboard
+      # Add item(s) to the pool of items to autosuggest from.  Each item's initial
+      # rank is 0
+      def add(*items)
+        item_pool = Config.db.hgetall(Config.items).values
+        items.each do |i|
+          next if item_pool.include?(i.downcase)
+          add_item(i.downcase)
+        end
+      end
+
+      def add_with_score(*fields)
+        item_pool = Config.db.hgetall(Config.items).values
+        fields.each_slice(2) do |f|
+          next if item_pool.include?(f[0].downcase)
+          add_item(f[0].downcase, f[1])
         end
       end
 
@@ -47,6 +54,13 @@ class Redis
       end
 
       private
+      def add_item(item, score=0)
+        id = Config.db.hlen(Config.items)
+        Config.db.hset(Config.items, id, item)
+        add_substrings(item, score, id)
+        Config.db.zadd(Config.leaderboard, score, id) if Config.use_leaderboard
+      end
+
       # Yield each substring of a complete string 
       def each_substring(str)
         (0..str.length - 1).each { |i| yield str[0..i] }
