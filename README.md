@@ -54,6 +54,7 @@ Autosuggest can also be integrated with Rails.  Include it in a model:
 class Movie < ActiveRecord::Base
   include Redis::Autosuggest
   
+  attr_accessible :movie_title
   autosuggest     :movie_title
 end
 ```
