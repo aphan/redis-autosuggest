@@ -57,13 +57,8 @@ Redis::Autosuggest.init_rails_sources
 You can optionally specify a numeric field to be used as the initial score for an item
 when it is added:
 ```ruby
-  autosuggest     :movie_title, :rank_by => imdb_rating
+  autosuggest :movie_title, :rank_by => imdb_rating
 ```
 
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+## Front-end portion
+Jquery plugin for dropdown autocompletions for a from can be found [here](https://github.com/aphan/jquery-rtsuggest)
