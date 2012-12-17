@@ -30,4 +30,3 @@ class TestFile < MiniTest::Unit::TestCase
 
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
-

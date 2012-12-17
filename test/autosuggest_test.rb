@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class TestAutosuggest < MiniTest::Unit::TestCase
-  
+
   def self.unused_db
     @unused_db ||= Redis.new(:db => TestHelper.db_picker)
   end
@@ -44,7 +44,7 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     assert @subs.keys.size == 10
   end
 
-    def test_adding_multiple_items_with_scores
+  def test_adding_multiple_items_with_scores
     Redis::Autosuggest.add_with_score("one", 1, "two", 2, "three", 3)
     assert @db.hgetall(Redis::Autosuggest.items).size == 3
     assert @subs.keys.size == 10
@@ -101,8 +101,8 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_getting_an_items_score
-     Redis::Autosuggest.add_with_score(@str1, 3)
-     assert_equal 3, Redis::Autosuggest.get_score(@str1)
+    Redis::Autosuggest.add_with_score(@str1, 3)
+    assert_equal 3, Redis::Autosuggest.get_score(@str1)
   end
 
   MiniTest::Unit.after_tests { self.unused_db.flushdb }

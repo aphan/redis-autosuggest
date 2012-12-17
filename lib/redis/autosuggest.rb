@@ -4,48 +4,54 @@ class Redis
     class << self
 
       # Add item(s) to the pool of items to autosuggest from.  Each item's initial
-      # rank is 0
+      # rank is 0. Returns true if all items added were new, false otherwise.
       def add(*items)
-        item_pool = @db.hgetall(@items).values
-        items.each do |i|
-          next if item_pool.include?(i.downcase)
-          add_item(i.downcase)
+        all_new_items = true
+        items.each do |item|
+          item = item.downcase
+          item_exists?(item) ? all_new_items = false : add_item(item)
         end
+        all_new_items
       end
 
-      # Add item(s) along with their scores.
+      # Add item(s) along with their initial scores.
+      # Returns true if all items added were new, false otherwise.
       # add_with_score("item1", 4, "item2", 1, "item3", 0)
       def add_with_score(*fields)
-        item_pool = @db.hgetall(@items).values
+        all_new_items = true 
         fields.each_slice(2) do |f|
-          next if item_pool.include?(f[0].downcase)
-          add_item(f[0].downcase, f[1])
+          f[0] = normalize(f[0])
+          item_exists?(f[0]) ? all_new_items = false : add_item(*f)
         end
+        all_new_items
       end
 
-      # Remove an item from the pool of items to autosuggest from
+      # Remove an item from the pool of items to autosuggest from.
+      # Returns true if an item was indeed removed, false otherwise.
       def remove(item)
         item = item.downcase
         id = get_id(item)
-        return if id.nil?
+        return false if id.nil?
         @db.hdel(@items, id)
+        @db.hdel(@itemids, item)
         remove_substrings(item, id)
         @redis.zrem(@leaderboard, id) if @use_leaderboard
+        return true
       end
 
-      # Increment the score (by 1 by default) of an item.  Pass in a negative value
-      # to decrement the score
-      def increment(item, inc=1)
-        item = item.downcase
+      # Increment the score (by 1 by default) of an item.  
+      # Pass in a negative value to decrement the score.
+      def increment(item, incr=1)
+        item = normalize(item)
         id = get_id(item)
-        each_substring(item) { |sub| @substrings.zincrby(sub, inc, id) }
-        @db.zincrby(@leaderboard, inc, id) if @use_leaderboard
+        each_substring(item) { |sub| @substrings.zincrby(sub, incr, id) }
+        @db.zincrby(@leaderboard, incr, id) if @use_leaderboard
       end
 
       # Suggest items from the database that most closely match the queried string.
-      # Returns an array of suggestion items (an empty array if nothing found)
+      # Returns an array of suggestion items (an empty array if nothing found).
       def suggest(str, results=@max_results)
-        suggestion_ids = @substrings.zrevrange(str.downcase, 0, results - 1)
+        suggestion_ids = @substrings.zrevrange(normalize(str), 0, results - 1)
         suggestion_ids.empty? ? [] : @db.hmget(@items, suggestion_ids)
       end
 
@@ -57,15 +63,32 @@ class Redis
 
       # Get the score of an item
       def get_score(item)
-        @substrings.zscore(item.downcase, get_id(item.downcase))
+        item = normalize(item)
+        @substrings.zscore(item, get_id(item))
+      end
+
+      # Returns whether or not an item is already stored in the db
+      def item_exists?(item)
+        return !get_id(normalize(item)).nil?
       end
 
       private
+
+      def normalize(item)
+        return item.downcase.strip
+      end
+
       def add_item(item, score=0)
-        id = self.db.hlen(self.items)
-        self.db.hset(self.items, id, item)
+        id = @db.hlen(@items)
+        @db.hset(@items, id, item)
+        @db.hset(@itemids, item, id)
         add_substrings(item, score, id)
-        self.db.zadd(self.leaderboard, score, id) if self.use_leaderboard
+        @db.zadd(@leaderboard, score, id) if @use_leaderboard
+      end
+
+      # Get the id associated with an item in the db
+      def get_id(item)
+        return @db.hmget(@itemids, item).first
       end
 
       # Yield each substring of a complete string 
@@ -81,12 +104,6 @@ class Redis
       # Remove all substrings of a string from the db
       def remove_substrings(str, id)
         each_substring(str) { |sub| @substrings.zrem(sub, id) }
-      end
-
-      # Get the id associated with an item in the db 
-      def get_id(item)
-        kv_pair = @db.hgetall(@items).find { |_, v| v == item}
-        kv_pair.first unless kv_pair.nil?
       end
     end
   end
