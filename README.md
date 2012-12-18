@@ -51,13 +51,13 @@ end
 
 For first time usage, seed the Redis db with the autosuggest sources:
 ```ruby
-Redis::Autosuggest.init_rails_sources
+rake autosuggest:init
 ```
 
 You can optionally specify a numeric field to be used as the initial score for an item
-when it is added:
+when it is added and a limit of how many items maximum to keep:
 ```ruby
-  autosuggest :movie_title, :rank_by => imdb_rating
+  autosuggest :movie_title, :rank_by => imdb_rating, limit => 10000
 ```
 
 ## Front-end portion

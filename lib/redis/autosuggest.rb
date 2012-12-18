@@ -72,6 +72,11 @@ class Redis
         return !get_id(normalize(item)).nil?
       end
 
+      # Get the id associated with an item in the db
+      def get_id(item)
+        return @db.hmget(@itemids, normalize(item)).first
+      end
+
       private
 
       def normalize(item)
@@ -86,11 +91,6 @@ class Redis
         @db.zadd(@leaderboard, score, id) if @use_leaderboard
       end
 
-      # Get the id associated with an item in the db
-      def get_id(item)
-        return @db.hmget(@itemids, item).first
-      end
-
       # Yield each substring of a complete string 
       def each_substring(str)
         (0..str.length - 1).each { |i| yield str[0..i] }
@@ -98,7 +98,36 @@ class Redis
 
       # Add all substrings of a string to redis
       def add_substrings(str, score, id)
-        each_substring(str) { |sub| @substrings.zadd(sub, score, id) }
+        each_substring(str) do |sub| 
+          if @max_per_substring == Float::INFINITY
+            add_substring(sub, score, id)
+          else
+            add_substring_limit(sub, score, id)
+          end
+        end
+      end
+      
+      # Add the id of an item to a substring
+      def add_substring(sub, score, id)
+        @substrings.zadd(sub, score, id)
+      end
+      
+      # Add the id of an item to a substring only when the number of items that
+      # substring stores is less then the config value of "max_per_substring".
+      # If the substring set is already full, check to see if the item with the
+      # lowest score in the substring set has a lower score than the item being added.
+      # If yes, remove that item and add this item to the substring set.
+      def add_substring_limit(sub, score, id)
+        count = @substrings.zcount(sub, "-inf", "inf")
+        if count < @max_per_substring
+          add_substring(sub, score, id)
+        else
+          lowest_item = @substrings.zrevrange(sub, -1, -1, { withscores: true }).last
+          if score > lowest_item[1]
+            @substrings.zrem(sub, lowest_item[0])
+            add_substring(sub, score, id)
+          end
+        end
       end
 
       # Remove all substrings of a string from the db

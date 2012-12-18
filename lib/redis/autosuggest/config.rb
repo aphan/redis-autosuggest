@@ -25,7 +25,7 @@ class Redis
     @max_per_substring = Float::INFINITY
 
     # max number of results to return for an autosuggest query
-    @max_results = 5 
+    @max_results = 5
 
     # Key to a sorted set holding all id of items in the autosuggest database sorted 
     # by their score

@@ -105,5 +105,13 @@ class TestAutosuggest < MiniTest::Unit::TestCase
     assert_equal 3, Redis::Autosuggest.get_score(@str1)
   end
 
+  def test_adding_with_substring_limit
+    Redis::Autosuggest.max_per_substring = 1
+    Redis::Autosuggest.add_with_score(@str1, 1)
+    Redis::Autosuggest.add_with_score("Test", 5)
+    item_id = Redis::Autosuggest.get_id("Test")
+    assert_equal [item_id], @subs.zrevrange("test", 0, -1)
+  end
+
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
 end
