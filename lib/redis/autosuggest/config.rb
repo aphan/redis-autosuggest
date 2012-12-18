@@ -32,7 +32,7 @@ class Redis
     @leaderboard = "lead"
 
     # Leaderboard on by default
-    @use_leaderboard = true
+    @use_leaderboard = false
 
     # Sources to be used for Autocomplete in rails.
     # Example: { Movie => :movie_title }
