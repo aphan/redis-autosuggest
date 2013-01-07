@@ -8,7 +8,11 @@ class Redis
       def add(*items)
         all_new_items = true
         items.each do |item|
-          item = item.downcase
+          if item.size > @max_str_size
+            all_new_items = false
+            next
+          end
+          item = normalize(item)
           item_exists?(item) ? all_new_items = false : add_item(item)
         end
         all_new_items
@@ -20,6 +24,10 @@ class Redis
       def add_with_score(*fields)
         all_new_items = true 
         fields.each_slice(2) do |f|
+          if f[0].size > @max_str_size
+            all_new_items = false
+            next
+          end
           f[0] = normalize(f[0])
           item_exists?(f[0]) ? all_new_items = false : add_item(*f)
         end
@@ -36,6 +44,7 @@ class Redis
         @db.hdel(@itemids, item)
         remove_substrings(item, id)
         @redis.zrem(@leaderboard, id) if @use_leaderboard
+        remove_fuzzy(item) if @fuzzy_match
         return true
       end
 
@@ -50,8 +59,15 @@ class Redis
 
       # Suggest items from the database that most closely match the queried string.
       # Returns an array of suggestion items (an empty array if nothing found).
+      # Fuzzy matching will only occur when both of these conditions are met:
+      #   - Redis::Autosuggest.fuzzy_match == true
+      #   - The simple suggestion method (matching substrings) yields no results
       def suggest(str, results=@max_results)
-        suggestion_ids = @substrings.zrevrange(normalize(str), 0, results - 1)
+        str = normalize(str)
+        suggestion_ids = @substrings.zrevrange(str, 0, results - 1)
+        if suggestion_ids.empty? && @fuzzy_match 
+          return suggest_fuzzy(str, results)
+        end
         suggestion_ids.empty? ? [] : @db.hmget(@items, suggestion_ids)
       end
 
@@ -77,6 +93,10 @@ class Redis
         return @db.hmget(@itemids, normalize(item)).first
       end
 
+      def get_item(id)
+        return @db.hmget(@items, id).first
+      end
+
       private
 
       def normalize(item)
@@ -89,6 +109,7 @@ class Redis
         @db.hset(@itemids, item, id)
         add_substrings(item, score, id)
         @db.zadd(@leaderboard, score, id) if @use_leaderboard
+        add_fuzzy(item) if @fuzzy_match
       end
 
       # Yield each substring of a complete string 
@@ -106,19 +127,19 @@ class Redis
           end
         end
       end
-      
+
       # Add the id of an item to a substring
       def add_substring(sub, score, id)
         @substrings.zadd(sub, score, id)
       end
-      
+
       # Add the id of an item to a substring only when the number of items that
       # substring stores is less then the config value of "max_per_substring".
       # If the substring set is already full, check to see if the item with the
       # lowest score in the substring set has a lower score than the item being added.
       # If yes, remove that item and add this item to the substring set.
       def add_substring_limit(sub, score, id)
-        count = @substrings.zcount(sub, "-inf", "inf")
+        count = @substrings.zcount(sub, "-inf", "+inf")
         if count < @max_per_substring
           add_substring(sub, score, id)
         else

@@ -20,6 +20,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency("redis", "~> 3.0.2")
   gem.add_dependency("redis-namespace", "~> 1.2.1")
+  gem.add_dependency("levenshtein-ffi", "~> 1.0.3")
+  gem.add_dependency("text", "~> 1.2.1")
 
   gem.add_development_dependency("minitest", "~> 4.3.3")
 end

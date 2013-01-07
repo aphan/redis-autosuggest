@@ -6,7 +6,10 @@ class Redis
       # Add items to the autosuggest database from a file.
       # Each line be a string representing the item
       def add_from_file(file)
-        add(*(File.open(file, "r").map { |l| l.strip }))
+        File.open(file, "r").each do |l| 
+          puts "Adding #{l}"
+          add(l.strip)
+        end
       end
       
       # Add items and their to the autosuggest database from a file.
