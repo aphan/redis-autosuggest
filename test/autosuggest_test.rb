@@ -106,11 +106,25 @@ class TestAutosuggest < MiniTest::Unit::TestCase
   end
 
   def test_adding_with_substring_limit
+    saved_limit = Redis::Autosuggest.max_per_substring
     Redis::Autosuggest.max_per_substring = 1
     Redis::Autosuggest.add_with_score(@str1, 1)
     Redis::Autosuggest.add_with_score("Test", 5)
     item_id = Redis::Autosuggest.get_id("Test")
     assert_equal [item_id], @subs.zrevrange("test", 0, -1)
+    Redis::Autosuggest.max_per_substring = saved_limit
+  end
+
+  def test_suggesting_items_fuzzy
+    Redis::Autosuggest.fuzzy_match = true
+    str = "north by northwest"
+    Redis::Autosuggest.add(str, "northern exposure", "once upon a time in the west")
+    assert_equal str, Redis::Autosuggest.suggest("northbynorthwest")[0]
+    assert_equal str, Redis::Autosuggest.suggest("morth yb nerthwest")[0]
+    assert_equal str, Redis::Autosuggest.suggest("northe bie")[0]
+    assert_equal str, Redis::Autosuggest.suggest("morthybnerthwest")[0]
+    assert_equal str, Redis::Autosuggest.suggest("nourth bhye nourthwhast")[0]
+    Redis::Autosuggest.fuzzy_match = false
   end
 
   MiniTest::Unit.after_tests { self.unused_db.flushdb }
