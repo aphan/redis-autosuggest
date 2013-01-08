@@ -36,6 +36,13 @@ Redis::Autosuggest.add_with_score("North By Northwest", 9, Northern Exposure, 3)
 # Increment an item's score
 Redis::Autosuggest.increment("North By Northwest", 1)
 ```
+Fuzzy matching:
+```ruby
+Redis::Autosuggest.fuzzy_match = true
+Redis::Autosuggest.add("North By Northwest")
+Redis::Autosuggest.suggest("nort byenorthwest")
+# => ["north by northwest"]
+```
 
 ## Rails support
 
