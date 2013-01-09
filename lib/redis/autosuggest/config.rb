@@ -55,12 +55,17 @@ class Redis
 
     # Maximum number of items to be indexed per n-gram (fuzzy matching)
     @ngram_item_limit = 200
+    
+    # If this is set to true, returned suggestions for fuzzy matching will only
+    # return suggestions that it has a very high confidence of in being correct.
+    @strict_fuzzy_matching = false
 
     class << self
       attr_reader :redis, :namespace
       attr_accessor :db, :items, :itemids, :substrings, :max_per_substring,
         :max_results, :max_str_size, :leaderboard, :use_leaderboard, :rails_sources,
-        :rails_source_sizes, :ngrams, :fuzzy_match, :ngram_size, :ngram_item_limit
+        :rails_source_sizes, :ngrams, :fuzzy_match, :ngram_size, :ngram_item_limit,
+        :strict_fuzzy_matching
 
       def redis=(redis)
         @redis = redis

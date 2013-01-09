@@ -32,7 +32,7 @@ class Redis
       # with the string. Use levenshtein distance, soundex code similarity,
       # and the number of matching 2-grams to compute a score for each candidate.
       # Then return the highest-scoring candidates.
-      def suggest_fuzzy(str, results=@max_results)
+      def suggest_fuzzy(str, results=@max_results, strict=@strict_fuzzy_matching)
         str_mul = alphabet_only(str).size
         str_soundex_code = compute_soundex_code(str)
         str_2grams = ngram_list(str, 2)
@@ -68,8 +68,21 @@ class Redis
         end
         # Sort results by score and return the highest scoring candidates
         candidates = candidates.sort { |a, b| b[:score] <=> a[:score] }
-        puts candidates.take(10).map { |cand| "#{cand[:str]} => #{cand[:score]}" }
-        return candidates.take(results).map { |cand| cand[:str] }
+        # puts candidates.take(10).map { |cand| "#{cand[:str]} => #{cand[:score]}" }
+        # If strict fuzzy matching is used, only suggestion items with scores
+        # above a certain threshold will be returned.
+        if strict
+          suggestions = []
+          candidates.each do |cand|
+            # threshold ||= candidates[0][:score] / 10
+            threshold = Math.exp(str.size)
+            break if suggestions.size > results || cand[:score] < threshold
+            suggestions << cand
+          end
+        else
+          suggestions = candidates.take(results)
+        end
+        return suggestions.map { |cand| cand[:str] }
       end
 
       # Yield the n-grams of a specified size for a string one at a time
