@@ -2,7 +2,7 @@ class Redis
   module Autosuggest
 
     class << self 
-      
+
       # Add an item's n-grams to the redis db. The n-grams will be used
       # as candidates for autocompletions when Redis::Autosuggest.fuzzy_match
       # is set to true.
@@ -13,20 +13,20 @@ class Redis
           end
         end
       end
-      
+
       # Remove an item's n-grams from the Redis db
       def remove_fuzzy(item)
         yield_ngrams(item) do |ngram| 
           @ngrams.srem(ngram, "#{item}:#{compute_soundex_code(item)}")
         end
       end
-      
+
       # Compute the soundex code of a string (only works for single words
       # so we have to merge multi-word strings)
       def compute_soundex_code(str)
         return Text::Soundex.soundex(alphabet_only(str))
       end
-      
+
       # Build a candidate pool for all suitable fuzzy matches for a string
       # by taking the union of all items in the Redis db that share an n-gram
       # with the string. Use levenshtein distance, soundex code similarity,
@@ -59,20 +59,25 @@ class Redis
           same_2grams = str_2grams & ngram_list(candidate_str, 2)
           candidate_score *= Math.exp(same_2grams.size)
 
-          candidates << [candidate_str, candidate_score] if candidate_score > 1
+          if candidate_score > 1
+            candidates << {
+              str: candidate_str,
+              score: candidate_score
+            }
+          end
         end
         # Sort results by score and return the highest scoring candidates
-        candidates = candidates.sort { |a, b| b[1] <=> a[1] }
-        # puts candidates.take(10).map { |tuple| "#{tuple[0]} => #{tuple[1]}" }
-        return candidates.take(results).map { |a| a[0] }
+        candidates = candidates.sort { |a, b| b[:score] <=> a[:score] }
+        puts candidates.take(10).map { |cand| "#{cand[:str]} => #{cand[:score]}" }
+        return candidates.take(results).map { |cand| cand[:str] }
       end
-      
+
       # Yield the n-grams of a specified size for a string one at a time
       def yield_ngrams(str, ngram_size=@ngram_size)
         ngram_list = ngram_list(str, ngram_size)
         ngram_list.each { |ngram| yield ngram }
       end
-      
+
       # Returns a list containing all of the n-grams of a specified size
       # of a string.  The list is ordered by the position of the n-gram
       # in the string (duplicates included).
@@ -86,7 +91,7 @@ class Redis
         end
         ngram_list
       end
-      
+
       # Remove all characters not in the range 'a-z' from a string
       def alphabet_only(str)
         return str.gsub(/[^abcdefghijklmnopqrstuvwxyz]/, '')
