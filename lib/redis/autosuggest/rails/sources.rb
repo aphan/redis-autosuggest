@@ -35,7 +35,6 @@ class Redis
         class << self
 
           def init_rails_sources
-            puts Rails
             ::Rails.application.eager_load!
             Redis::Autosuggest.db.flushdb
             Redis::Autosuggest.rails_sources.each do |model, attrs|
