@@ -36,7 +36,7 @@ class Redis
 
           def init_rails_sources
             ::Rails.application.eager_load!
-            Redis::Autosuggest.db.flushdb
+            # Redis::Autosuggest.db.flushdb
             Redis::Autosuggest.rails_sources.each do |model, attrs|
               attrs.each do |column, options|
                 order = options[:init_order] || ""
